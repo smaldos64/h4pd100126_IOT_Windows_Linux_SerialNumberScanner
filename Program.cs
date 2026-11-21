@@ -34,7 +34,9 @@ namespace SerialNumberScanner
         // --- WINDOWS LØSNING (Bruger WMI) ---
         private static void ScanWindowsPorts()
         {
-            string[] ports = SerialPort.GetPortNames();
+            string[] ports = SerialPort.GetPortNames().
+                Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray(); ;
             foreach (string port in ports)
             {
                 string serialNumber = GetWindowsUsbSerialNumber(port);
@@ -44,75 +46,7 @@ namespace SerialNumberScanner
                 }
             }
         }
-
-        //private static string GetWindowsUsbSerialNumber(string portName)
-        //{
-        //    try
-        //    {
-        //        // Kræver System.Management NuGet-pakken (kun relevant på Windows)
-        //        string query = $"SELECT * FROM Win32_SerialPort WHERE DeviceID='{portName}'";
-        //        using (var searcher = new System.Management.ManagementObjectSearcher(query))
-        //        {
-        //            foreach (var queryObj in searcher.Get())
-        //            {
-        //                string pnpDeviceId = queryObj["PNPDeviceID"]?.ToString();
-        //                if (!string.IsNullOrEmpty(pnpDeviceId))
-        //                {
-        //                    string[] parts = pnpDeviceId.Split('\\');
-        //                    if (parts.Length >= 3)
-        //                    {
-        //                        string rawSerial = parts[2];
-        //                        if (rawSerial.Contains("&"))
-        //                        {
-        //                            rawSerial = rawSerial.Split('&')[0];
-        //                        }
-        //                        return rawSerial;
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Fejl på port {portName}: {ex.Message}");
-        //    }
-        //    return null;
-        //}
-
-        //private static string? GetWindowsUsbSerialNumber(string portName)
-        //{
-        //    try
-        //    {
-        //        // Find PnP-enheden der matcher f.eks. "(COM15)" i navnet
-        //        string query = $"SELECT Name, PNPDeviceID FROM Win32_PnPEntity WHERE Name LIKE '%({portName})%'";
-        //        using var searcher = new ManagementObjectSearcher(query);
-
-        //        foreach (ManagementObject obj in searcher.Get())
-        //        {
-        //            string? name = obj["Name"]?.ToString();
-        //            string? pnpId = obj["PNPDeviceID"]?.ToString();
-
-        //            Console.WriteLine($"[Debug {portName}] Name: {name} | PNPDeviceID: {pnpId}");
-
-        //            if (!string.IsNullOrEmpty(pnpId))
-        //            {
-        //                // Kig efter et Atmel/Microchip serienummer (typisk ATML efterfulgt af alfanumeriske tegn)
-        //                Match match = Regex.Match(pnpId, @"ATML[A-Z0-9]+", RegexOptions.IgnoreCase);
-        //                if (match.Success)
-        //                {
-        //                    return match.Value.ToUpperInvariant();
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Fejl ved WMI-opslag for {portName}: {ex.Message}");
-        //    }
-
-        //    return null;
-        //}
-
+                
         private static string? GetWindowsUsbSerialNumber(string portName)
         {
             try
